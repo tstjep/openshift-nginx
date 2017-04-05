@@ -5,5 +5,5 @@ RUN chmod -R 777 /var/log/nginx /var/cache/nginx /var/run \
      && chgrp -R 0 /etc/nginx \
      && chmod -R g+rwX /etc/nginx \
      && rm /etc/nginx/conf.d/default.conf
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 8080 8081
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
