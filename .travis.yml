@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+addons:
+  apt:
+    packages:
+    - python3
+before_install:
+  - docker build -t nginx .
+  - docker run -d -u 1234:0 -p 8081:8081 --name nginx nginx
+  - |
+    while ! [[ $(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8081/status-tocco-nginx") = 200 ]]; do
+        echo "waiting for Nginx to become ready"
+        sleep 1;
+    done
+  - docker exec -u 0:0 nginx apt update
+  - docker exec -u 0:0 nginx apt install -y redir
+  - docker exec -d nginx redir --lport 8080 --caddr github.com --cport 80
+script:
+  - docker exec nginx nginx -t
+  - |
+    redirect=$(curl -v -s -w "%{redirect_url}" -H "Host: github.com" "http://localhost:8081/tocco/") \
+      && [ "$redirect" = "https://github.com/tocco/" ]
