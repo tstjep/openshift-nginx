@@ -1,0 +1,2 @@
+# ignore cached python byte-code
+**/__pycache__/
