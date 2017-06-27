@@ -5,19 +5,18 @@ addons:
   apt:
     packages:
     - python3
+    - python3-requests
 before_install:
   - docker build -t nginx .
-  - docker run -d -u 1234:0 -p 8081:8081 --name nginx nginx
+  - docker run -d -u 1234:0 --net=host -p 8081:8081 --name nginx -e NGINX_HEADER_Some-Header='some "value"'
+       -e NGINX_ALWAYS_HEADER_Some__Always__Header='some always "value"' nginx
   - |
     while ! [[ $(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8081/status-tocco-nginx") = 200 ]]; do
         echo "waiting for Nginx to become ready"
+        docker exec -it nginx true || return
         sleep 1;
     done
-  - docker exec -u 0:0 nginx apt update
-  - docker exec -u 0:0 nginx apt install -y redir
-  - docker exec -d nginx redir --lport 8080 --caddr github.com --cport 80
 script:
   - docker exec nginx nginx -t
-  - |
-    redirect=$(curl -v -s -w "%{redirect_url}" -H "Host: github.com" "http://localhost:8081/tocco/") \
-      && [ "$redirect" = "https://github.com/tocco/" ]
+  - PYTHONPATH=$PWD python3 -m unittest discover tests
+  - ./tests/integration_tests.py
