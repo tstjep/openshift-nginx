@@ -5,13 +5,19 @@
 #
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
+import time
 import os
 
 
 class S(BaseHTTPRequestHandler):
     def do_GET(self):
-        code = int(self.path[1:])
-        self.send_response(code)
+        if self.path.startswith('/time='):
+            time.sleep(int(self.path[6:]))
+            self.send_response(200)
+        else:
+            code = int(self.path[1:])
+            self.send_response(code)
+
         self.end_headers()
 
 
