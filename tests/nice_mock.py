@@ -7,11 +7,17 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import socketserver
 import time
 import os
+import uuid
 
 
 class S(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path.startswith('/time='):
+        body = ''
+        if self.path == '/cache':
+            body = str(uuid.uuid4())
+            self.send_response(200)
+            self.send_header('Cache-Control', 'public, max-age=86400')
+        elif self.path.startswith('/time='):
             time.sleep(int(self.path[6:]))
             self.send_response(200)
         else:
@@ -19,6 +25,7 @@ class S(BaseHTTPRequestHandler):
             self.send_response(code)
 
         self.end_headers()
+        self.wfile.write(body.encode())
 
 
 def run(server_class=HTTPServer, handler_class=S):
