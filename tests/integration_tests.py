@@ -16,7 +16,7 @@ def assert_response(path, code, *, some_header):
 # ensure cache isn't shared across different hostnames
 def test_cache_keying():
     abc_net1 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net'})
-    assert abc_net.headers['X-Cache'] == 'MISS'
+    assert abc_net1.headers['X-Cache'] == 'MISS'
 
     # same host, same uri → cached
     abc_net2 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net'})
