@@ -25,7 +25,7 @@ def test_cache_keying():
     assert abc_net1.text == abc_net2.text
 
     # different schema → not cached
-    http = requests.get('http://localhost:8081/cache', headers={'Host': 'xyz.net', 'X-Forwarded-Proto': 'http'})
+    http = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'http'})
     assert http.headers['X-Cache'] == 'MISS'
     assert abc_net1.text != http.text
 
