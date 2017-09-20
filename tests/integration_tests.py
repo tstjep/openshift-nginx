@@ -15,18 +15,24 @@ def assert_response(path, code, *, some_header):
 # regression test for #63270:
 # ensure cache isn't shared across different hostnames
 def test_cache_keying():
-    abc_net1 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net'})
+    abc_net1 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https'})
     assert abc_net1.headers['X-Cache'] == 'MISS'
 
-    # same host, same uri → cached
-    abc_net2 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net'})
+    # same schema, same host and same uri → cached
+    abc_net2 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https'})
     assert abc_net2.headers['X-Cache'] == 'HIT'
     assert abc_net1.text == abc_net2.text
 
-    # same host different uri → not cached
-    xyz_net = requests.get('http://localhost:8081/cache', headers={'Host': 'xyz.net'})
+    # different schema → not cached
+    http = requests.get('http://localhost:8081/cache', headers={'Host': 'xyz.net', 'X-Forwarded-Proto': 'http'})
+    assert http.headers['X-Cache'] == 'MISS'
+    assert abc_net1.text != http.text
+
+    # different host → not cached
+    xyz_net = requests.get('http://localhost:8081/cache', headers={'Host': 'xyz.net', 'X-Forwarded-Proto': 'https'})
     assert xyz_net.headers['X-Cache'] == 'MISS'
     assert abc_net1.text != xyz_net.text
+
 
 
 #
