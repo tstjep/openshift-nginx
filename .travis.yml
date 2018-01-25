@@ -17,6 +17,6 @@ before_install:
         sleep 1;
     done
 script:
-  - docker exec nginx nginx -t
+  - docker exec nginx nginx -t || { docker logs nginx; false; }
   - PYTHONPATH=$PWD python3 -m unittest discover tests
   - ./tests/integration_tests.py
