@@ -1,6 +1,12 @@
 # openshift-nginx
 [![Build Status](https://travis-ci.org/tocco/openshift-nginx.svg?branch=master)](https://travis-ci.org/tocco/openshift-nginx)
 
+##
+
+:warning: This branch is used for Nice <2.13 due to incorrectly set caching headers. The `master` branch is what you want for current
+versions of Nice.
+
+
 ## Setting Headers
 
 IMPORTANT:
