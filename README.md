@@ -1,6 +1,8 @@
 # openshift-nginx
 [![Build Status](https://travis-ci.org/tocco/openshift-nginx.svg?branch=master)](https://travis-ci.org/tocco/openshift-nginx)
 
+:warning: Because of incorrectly set caching headers (bug #66771), Nice <2.13 uses the config in branch `limited-caching`.
+
 ## Setting Headers
 
 IMPORTANT:
