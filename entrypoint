@@ -1,9 +1,0 @@
-#!/usr/bin/python3
-import os
-import subprocess
-
-GLOBAL_DIRECTIVES='daemon off;'
-
-subprocess.check_call(['/usr/local/bin/header_config.py'])
-subprocess.check_call(['nginx', '-t', '-g', GLOBAL_DIRECTIVES])
-os.execvp('nginx', ['nginx', '-g', GLOBAL_DIRECTIVES])

@@ -20,6 +20,8 @@ class S(BaseHTTPRequestHandler):
         elif self.path.startswith('/time='):
             time.sleep(int(self.path[6:]))
             self.send_response(200)
+        elif self.path == '/status-tocco':
+            self.send_response(200)
         else:
             code = int(self.path[1:])
             self.send_response(code)

@@ -3,6 +3,7 @@
 
 :warning: Because of incorrectly set caching headers (bug #66771), Nice <2.13 uses the config in branch `limited-caching`.
 
+
 ## Setting Headers
 
 IMPORTANT:
@@ -26,3 +27,15 @@ Set header regardless of status code:
 ```
 
 This creates a header called `My-Header` with the value `header-content`.
+
+
+## Limit Access to IP addresses
+
+IP addresses can be whitelisted using the `IP_WHITELIST` env. variable:
+
+```
+    IP_WHITELIST='81.55.33.3 40.22.0.0/16 1.5.5.5-1.5.5.7'
+```
+
+IP addresses, CIDR or IP ranges can be specified separated by space. If `IP_WHITELIST` is unset
+or empty, all addresses is granted access.

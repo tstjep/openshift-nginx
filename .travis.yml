@@ -9,7 +9,9 @@ addons:
 before_install:
   - docker build -t nginx .
   - docker run -d -u 1234:0 --net=host -p 8081:8081 --name nginx -e NGINX_HEADER_Some-Header='some "value"'
-       -e NGINX_ALWAYS_HEADER_Some__Always__Header='some always "value"' nginx
+       -e NGINX_ALWAYS_HEADER_Some__Always__Header='some always "value"'
+       -e IP_WHITELIST='10.0.0.3 10.5.8.0/24 22.88.88.1-22.88.88.7'
+       nginx
   - |
     while ! [[ $(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8081/status-tocco-nginx") = 200 ]]; do
         echo "waiting for Nginx to become ready"

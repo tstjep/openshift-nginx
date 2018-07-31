@@ -4,11 +4,11 @@ import requests
 import time
 from multiprocessing import Process
 
+def assert_response(path, code, *, some_header, source_ip='10.0.0.3'):
+    headers = { 'X-Forwarded-For': source_ip, 'X-Forwarded-Proto': 'https' }
+    r = requests.get('http://localhost:8081/{}'.format(path), allow_redirects=False, headers=headers)
 
-def assert_response(path, code, *, some_header):
-    r = requests.get('http://localhost:8081/{}'.format(path), allow_redirects=False)
-
-    assert r.status_code == code, 'got code {} but expected {}'.format(r.status_code, code)
+    assert r.status_code == code, 'got code {} but expected {} fetching {!r} with source IP {}'.format(r.status_code, code, path, source_ip)
     assert r.headers['Some-Always-Header'] == 'some always "value"'
     assert not some_header or r.headers['Some-Header'] == 'some "value"'
 
@@ -16,21 +16,21 @@ def assert_response(path, code, *, some_header):
 # regression test for #63270:
 # ensure cache isn't shared across different hostnames
 def test_cache_keying():
-    abc_net1 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https'})
+    abc_net1 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https', 'X-Forwarded-For': '10.0.0.3'})
     assert abc_net1.headers['X-Cache'] == 'MISS'
 
     # same schema, same host and same uri → cached
-    abc_net2 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https'})
+    abc_net2 = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https', 'X-Forwarded-For': '10.0.0.3'})
     assert abc_net2.headers['X-Cache'] == 'HIT'
     assert abc_net1.text == abc_net2.text
 
     # different schema → not cached
-    http = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'http'})
+    http = requests.get('http://localhost:8081/cache', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'http', 'X-Forwarded-For': '10.0.0.3'})
     assert http.headers['X-Cache'] == 'MISS'
     assert abc_net1.text != http.text
 
     # different host → not cached
-    xyz_net = requests.get('http://localhost:8081/cache', headers={'Host': 'xyz.net', 'X-Forwarded-Proto': 'https'})
+    xyz_net = requests.get('http://localhost:8081/cache', headers={'Host': 'xyz.net', 'X-Forwarded-Proto': 'https', 'X-Forwarded-For': '10.0.0.3'})
     assert xyz_net.headers['X-Cache'] == 'MISS'
     assert abc_net1.text != xyz_net.text
 
@@ -52,6 +52,41 @@ def test_proxying():
 # verify default timeout of 60s is not in effect
 def test_timeout():
     assert_response('time=240', 200,  some_header=True)
+
+
+def test_access_control():
+    ips = [
+        # IP         allowed
+        ('10.0.0.2', False),
+        ('10.0.0.3', True),
+        ('10.0.0.4', False),
+
+        ('10.5.7.255', False),
+        ('10.5.8.0', True),
+        ('10.5.8.255', True),
+        ('10.5.9.0', False),
+
+        ('22.88.88.0', False),
+        ('22.88.88.1', True),
+        ('22.88.88.7', True),
+        ('22.88.88.8', False),
+
+        ('81.81.81.81', False)
+    ]
+
+    for ip, allowed in ips:
+        # never block status pages
+        assert_response('status-tocco', 200, some_header=True, source_ip=ip)
+        assert_response('status-tocco-nginx', 200, some_header=True, source_ip=ip)
+
+        if allowed:
+            assert_response('200', 200, some_header=True, source_ip=ip)
+        else:
+            assert_response('200', 403, some_header=False, source_ip=ip)
+
+    # ignore 22.88.8.7 because previous address in chain, 81.81.81.81, is untrusted
+    resp = requests.get('http://localhost:8081/200', headers={'Host': 'abc.net', 'X-Forwarded-Proto': 'https', 'X-Forwarded-For': '22.88.8.7, 81.81.81.81, 10.0.0.3, 10.0.0.2'})
+    assert resp.status_code == 403
 
 
 class mock:
@@ -83,6 +118,7 @@ def main():
     with mock():
         test_cache_keying()
         test_proxying()
+        test_access_control()
         test_timeout()
 
 if __name__ == '__main__':
