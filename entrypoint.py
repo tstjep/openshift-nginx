@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 import functools
 import ipaddress
+import jinja2
 import os
+from pathlib import Path
 import subprocess
 
 
@@ -26,11 +28,31 @@ def extract_addresses(raw):
             yield ipaddress.ip_network(addr)
 
 
+def create_nginx_conf():
+    process_template(Path('/etc/nginx/nginx.conf.template'))
+
+    for template in Path('/etc/nginx/conf.d/').glob('*.conf.template'):
+        process_template(template)
+
+
+def process_template(template_path):
+    with template_path.open() as f:
+        template = jinja2.Template(f.read())
+
+    # allow use of any env. variable in nginx config files
+    config = template.render(os.environ)
+
+    config_path = template_path.with_suffix('')
+    with config_path.open('w') as f:
+        f.write(config)
+
+
 def main():
     write_access_conf(os.environ.get('IP_WHITELIST', ''))
 
     GLOBAL_DIRECTIVES='daemon off;'
     subprocess.check_call(['/usr/local/bin/header_config.py'])
+    create_nginx_conf()
     subprocess.check_call(['nginx', '-t', '-g', GLOBAL_DIRECTIVES])
     os.execvp('nginx', ['nginx', '-g', GLOBAL_DIRECTIVES])
 
