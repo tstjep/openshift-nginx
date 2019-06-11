@@ -41,7 +41,7 @@ http {
         default 1;
     }
 
-    # verbose: log everything butstatus pages (those used by probes and monitoring mostly)
+    # verbose: log everything but status pages (those are used by probes and monitoring mostly)
     map $status$uri $log_filter_verbose {
         ~^[23][0-9]*/status-tocco(-nginx)?$ 0;
         default 1;
