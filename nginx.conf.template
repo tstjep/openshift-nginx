@@ -35,13 +35,24 @@ http {
           '"timezone": "$http_x_timezone", '
           '"cache": "$sent_http_x_cache" }';
 
-    # ignore certain paths on 2XX and 3XX status codes
-    map $status$uri $log_cond {
+    # default: ignore certain paths on 2XX and 3XX status codes
+    map $status$uri $log_filter_default {
         ~^[23][0-9]*/(cms/|css/|fonts/|img/|js/|nice2/(javascript/|textresource$)|status-tocco(-nginx)?$) 0;
         default 1;
     }
 
-    access_log /var/log/nginx/access.log main if=$log_cond;
+    # verbose: log everything but status pages (those are used by probes and monitoring mostly)
+    map $status$uri $log_filter_verbose {
+        ~^[23][0-9]*/status-tocco(-nginx)?$ 0;
+        default 1;
+    }
+
+    # all: log every single request
+    map $status$uri $log_filter_all {
+        default 1;
+    }
+
+    access_log /var/log/nginx/access.log main if=$log_filter_{{ NGINX_LOG_LEVEL|default('default') }};
 
     charset utf-8;
 

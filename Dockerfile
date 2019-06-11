@@ -1,10 +1,10 @@
 from nginx:latest
-ADD nice2.conf /etc/nginx/conf.d/
-ADD nginx.conf /etc/nginx/
+ADD nice2.conf.template /etc/nginx/conf.d/
+ADD nginx.conf.template /etc/nginx/
 ADD header_config.py /usr/local/bin/
 ADD entrypoint.py /usr/local/bin/
 RUN  apt-get update \
-     && apt-get install -y --no-install-recommends python3 \
+     && apt-get install -y --no-install-recommends python3 python3-jinja2 \
      && rm -r /var/cache/apt/* \
      && chmod -R 777 /var/log/nginx /var/cache/nginx /var/run \
      && chgrp -R 0 /etc/nginx \
