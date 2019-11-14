@@ -1,3 +1,7 @@
+upstream nice {
+    server localhost:8080 max_fails=0;
+}
+
 server {
     listen 8081;
 
@@ -30,7 +34,7 @@ server {
         }
         location = /status-tocco {
             allow all;
-            proxy_pass http://localhost:8080;
+            proxy_pass http://nice;
         }
 
         include /etc/nginx/access.conf;
