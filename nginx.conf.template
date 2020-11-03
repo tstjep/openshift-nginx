@@ -37,6 +37,7 @@ http {
 
     # default: ignore certain paths on 2XX and 3XX status codes
     map $status$uri $log_filter_default {
+        ~^[0-9]*/nice2/rest/(entity|entities)/[A-Z] 1;
         ~^[23][0-9]*/(cms/|css/|fonts/|img/|js/|nice2/(javascript/|textresource$)|status-tocco(-nginx)?$) 0;
         default 1;
     }
