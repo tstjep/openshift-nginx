@@ -4,6 +4,7 @@ import requests
 import time
 from multiprocessing import Process
 
+
 def assert_response(path, code, *, some_header, source_ip='10.0.0.3'):
     headers = { 'X-Forwarded-For': source_ip, 'X-Forwarded-Proto': 'https' }
     r = requests.get('http://localhost:8081/{}'.format(path), allow_redirects=False, headers=headers)
@@ -89,6 +90,37 @@ def test_access_control():
     assert resp.status_code == 403
 
 
+def test_websocket():
+    # Ensure the 'Connection' and 'Upgrade' HTTP headers are properly forwarded
+    # to the web server. The implementation for the /websocket route does the
+    # actual testing.
+    resp = requests.get(
+        'http://localhost:8081/websocket',
+        allow_redirects=False,
+        headers={
+            'Connection': 'Upgrade',
+            'Upgrade': 'WebSocket',
+            'X-Forwarded-For': '10.0.0.3',
+            'X-Forwarded-Proto': 'https',
+        }
+    )
+    resp.raise_for_status()
+
+
+def test_no_websocket():
+    # Neither the 'Connection' nor the 'Upgrade' header should be sent
+    # to upstreams. The web server tests this.
+    resp = requests.get(
+        'http://localhost:8081/no-websocket',
+        allow_redirects=False,
+        headers = {
+            'X-Forwarded-For': '10.0.0.3',
+            'X-Forwarded-Proto': 'https',
+        }
+    )
+    resp.raise_for_status()
+
+
 class mock:
     def __init__(self):
         self.mock = None
@@ -120,6 +152,8 @@ def main():
         test_proxying()
         test_access_control()
         test_timeout()
+        test_websocket()
+        test_no_websocket()
 
 if __name__ == '__main__':
     main()
