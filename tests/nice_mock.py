@@ -22,6 +22,22 @@ class S(BaseHTTPRequestHandler):
             self.send_response(200)
         elif self.path == '/status-tocco':
             self.send_response(200)
+        elif self.path == '/websocket':
+            if self.headers['Upgrade'].lower() == 'websocket' \
+                    and self.headers['Connection'].lower() == 'upgrade':
+                status = 101
+            else:
+                status = 500
+
+            self.send_response(status)
+        elif self.path == '/no-websocket':
+            if 'Upgrade' not in self.headers \
+                    and 'Connection' not in self.headers:
+                status = 200
+            else:
+                status = 500
+
+            self.send_response(status)
         else:
             code = int(self.path[1:])
             self.send_response(code)
