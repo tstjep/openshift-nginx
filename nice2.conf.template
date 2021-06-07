@@ -18,8 +18,6 @@ server {
     proxy_cache cache;
     proxy_cache_revalidate on;
     proxy_buffering on;
-    proxy_cache_valid 4m;
-    proxy_cache_valid 404 1m;
     proxy_next_upstream off;
     proxy_read_timeout 30m;
     proxy_connect_timeout 3s;
