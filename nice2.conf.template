@@ -39,6 +39,6 @@ server {
         proxy_set_header Connection $connection_upgrade;
 
         include /etc/nginx/access.conf;
-        proxy_pass http://localhost:8080;
+        proxy_pass http://nice;
     }
 }
