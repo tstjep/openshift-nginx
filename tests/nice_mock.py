@@ -4,6 +4,7 @@
 # /404 code 400 and so on.
 #
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import socket
 import socketserver
 import time
 import os
@@ -46,8 +47,12 @@ class S(BaseHTTPRequestHandler):
         self.wfile.write(body.encode())
 
 
-def run(server_class=HTTPServer, handler_class=S):
-    server_address = ('localhost', 8080)
+class CustomHTTPServer(HTTPServer):
+    address_family = socket.AF_INET6
+
+
+def run(server_class=CustomHTTPServer, handler_class=S):
+    server_address = ('', 8080)
     httpd = server_class(server_address, handler_class)
     httpd.serve_forever()
 
