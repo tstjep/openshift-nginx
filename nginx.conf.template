@@ -33,7 +33,7 @@ http {
           '"language": "$http_x_language", '
           '"client": "$http_x_client", '
           '"timezone": "$http_x_timezone", '
-          '"cache": "$sent_http_x_cache" }';
+          '"cache": "$upstream_cache_status" }';
 
     # default: ignore certain paths on 2XX and 3XX status codes
     map $status$uri $log_filter_default {
